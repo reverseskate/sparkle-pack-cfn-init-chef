@@ -2,6 +2,15 @@ SfnRegistry.register(:chef_client) do |_name, _config={}|
 
   chef_bucket = _config.fetch(:chef_bucket)
 
+  first_run = _config.fetch(:attributes, {}).merge(
+    :stack => {
+      :name => stack_name!,
+      :id => stack_id!,
+      :region => region!
+    },
+    :run_list => _config.fetch(:run_list, [])
+  )
+
   metadata('AWS::CloudFormation::Authentication') do
     chef_s3_auth do
       set!('roleName'._no_hump, _config.fetch(:auth_role))
@@ -48,16 +57,7 @@ SfnRegistry.register(:chef_client) do |_name, _config={}|
         group 'root'
       end
       files('/etc/chef/first_run.json') do
-        content do
-          run_list _config.fetch(:run_list)
-          _config.fetch(:attributes, {}).merge(
-            :stack => {
-              :name => stack_name!,
-              :id => stack_id!,
-              :region => region!
-            }
-          )
-        end
+        content first_run
       end
       commands('00_install_chef') do
         command 'curl -L https://omnitruck.chef.io/install.sh | sudo bash'
