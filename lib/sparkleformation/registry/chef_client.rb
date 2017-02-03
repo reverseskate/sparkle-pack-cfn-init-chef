@@ -60,13 +60,18 @@ SfnRegistry.register(:chef_client) do |_name, _config={}|
         content first_run
       end
       commands('00_install_chef') do
-        command 'curl -L https://omnitruck.chef.io/install.sh | sudo bash'
+        command join!("curl -sSL https://omnitruck.chef.io/install.sh | sudo bash -s -- -v ", _config.fetch(:chef_version, 'latest'))
       end
       commands('01_log_dir') do
         command 'mkdir /var/log/chef'
         test 'test ! -e /var/log/chef'
       end
-      commands('02_chef_first_run') do
+      # Why is this still a problem, Chef?
+      commands('02_create_ec2_hints_file') do
+        command 'mkdir -p /etc/chef/ohai/hints && touch /etc/chef/ohai/hints/ec2.json'
+        test 'test ! -e /etc/chef/ohai/hints/ec2.json'
+      end
+      commands('03_chef_first_run') do
         command 'chef-client -j /etc/chef/first_run.json'
       end
       commands('03_remove_validation_pem') do
