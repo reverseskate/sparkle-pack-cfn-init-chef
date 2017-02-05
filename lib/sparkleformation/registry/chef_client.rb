@@ -47,10 +47,10 @@ SfnRegistry.register(:chef_client) do |_name, _config={}|
       end
       files('/etc/chef/client.rb') do
         content join!(
-          "chef_server_url '#{_config.fetch(:chef_server)}'\n",
-          "environment '#{_config.fetch(:chef_environment, '_default')}'\n",
+          "chef_server_url '", _config.fetch(:chef_server), "'\n",
+          "environment '", _config.fetch(:chef_environment, '_default'), "'\n",
           "log_location '/var/log/chef/client.log'\n",
-          "validation_client_name '#{_config.fetch(:validation_client)}'\n"
+          "validation_client_name '", _config.fetch(:validation_client), "'\n"
         )
         mode '000400'
         owner 'root'
